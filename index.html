@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vector Lab — Laboratorio Virtual de Vectores 2D y 3D</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<style>
+:root{
+  --bg:#0b1020;--bg-2:#121a33;--panel:#161f3d;--panel-2:#1d2750;
+  --accent:#4cc9f0;--accent-2:#f72585;--accent-3:#7209b7;
+  --ok:#2ecc71;--warn:#f1c40f;--text:#e8ecf7;--muted:#9aa3c7;
+  --border:#2a3566;--radius:12px;--shadow:0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:radial-gradient(1200px 800px at 10% -10%,#1a2557 0%,transparent 60%),radial-gradient(900px 600px at 110% 10%,#3a0e5a 0%,transparent 55%),var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;min-height:100vh}
+a{color:var(--accent)}
+header{position:sticky;top:0;z-index:50;backdrop-filter:blur(10px);background:rgba(11,16,32,.75);border-bottom:1px solid var(--border)}
+.nav{max-width:1300px;margin:auto;padding:14px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.5px}
+.logo .dot{width:28px;height:28px;border-radius:50%;background:conic-gradient(from 0deg,var(--accent),var(--accent-2),var(--accent-3),var(--accent));box-shadow:0 0 20px var(--accent)}
+.logo span.sub{color:var(--muted);font-weight:500;font-size:.85rem;margin-left:6px}
+nav.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+nav.tabs button{background:transparent;color:var(--text);border:1px solid transparent;padding:8px 14px;border-radius:999px;cursor:pointer;font-size:.92rem;transition:.2s}
+nav.tabs button:hover{background:var(--panel)}
+nav.tabs button.active{background:linear-gradient(135deg,var(--accent),var(--accent-3));color:#fff;border-color:transparent;box-shadow:0 6px 18px rgba(76,201,240,.35)}
+main{max-width:1300px;margin:auto;padding:24px 22px 80px}
+section{display:none;animation:fade .35s ease}
+section.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+h1,h2,h3{line-height:1.2}
+h1{font-size:2rem;margin:0 0 6px}
+h2{font-size:1.4rem;margin:18px 0 10px;color:#fff}
+h3{font-size:1.1rem;margin:14px 0 8px;color:#cfd6f5}
+p,li{line-height:1.55;color:#dbe1f6}
+.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:20px;align-items:stretch}
+@media (max-width:900px){.hero{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;background:rgba(76,201,240,.12);color:var(--accent);font-size:.8rem;border:1px solid rgba(76,201,240,.3);margin-right:6px}
+.btn{background:linear-gradient(135deg,var(--accent),var(--accent-3));color:#fff;border:none;padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:600;transition:.2s;box-shadow:0 6px 18px rgba(114,9,183,.35)}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.08)}
+.btn.ghost{background:transparent;border:1px solid var(--border);box-shadow:none}
+.btn.warn{background:linear-gradient(135deg,#f72585,#b5179e)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+input[type="number"],input[type="text"],select{background:#0f1736;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:.95rem;width:100%}
+.canvas-wrap{position:relative;background:#0a1028;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+canvas{display:block;width:100%;height:auto}
+.legend{position:absolute;top:10px;left:10px;background:rgba(10,16,40,.7);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:.85rem}
+.legend .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.info{background:rgba(76,201,240,.08);border:1px solid rgba(76,201,240,.3);border-radius:10px;padding:12px 14px;color:#cfe9f7}
+.warn-box{background:rgba(241,196,15,.08);border:1px solid rgba(241,196,15,.35);border-radius:10px;padding:12px 14px;color:#f6e7a8}
+.ok-box{background:rgba(46,204,113,.08);border:1px solid rgba(46,204,113,.35);border-radius:10px;padding:12px 14px;color:#c8f3d8}
+.result{font-family:ui-monospace,Menlo,Consolas,monospace;background:#0f1736;border:1px solid var(--border);border-radius:8px;padding:10px;white-space:pre-wrap}
+footer{color:var(--muted);text-align:center;padding:20px;border-top:1px solid var(--border);margin-top:30px;font-size:.85rem}
+.math-block{background:#0f1736;border:1px solid var(--border);border-radius:10px;padding:12px;margin:8px 0;overflow-x:auto}
+.tag{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+details{background:#0f1736;border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:8px 0}
+details summary{cursor:pointer;font-weight:600}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <div class="logo">
+      <div class="dot"></div>
+      <div>VECTOR LAB <span class="sub">— Física Básica · 2D y 3D</span></div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="inicio" class="active">🏠 Inicio</button>
+      <button data-tab="teoria">📘 Teoría</button>
+      <button data-tab="lab2d">🧪 Lab 2D</button>
+      <button data-tab="lab3d">🌐 Lab 3D</button>
+      <button data-tab="calc">🧮 Calculadora</button>
+      <button data-tab="fuerzas">⚖️ Fuerzas</button>
+      <button data-tab="torque">🌀 Torque</button>
+      <button data-tab="ejercicios">🎯 Ejercicios</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section id="inicio" class="active">
+  <div class="hero">
+    <div class="card">
+      <span class="tag">Bienvenido al laboratorio</span>
+      <h1>Aprende vectores experimentando</h1>
+      <p>Un espacio interactivo para comprender <b>magnitudes vectoriales</b>, sus operaciones y su aplicación en fenómenos físicos.</p>
+      <div class="row" style="margin-top:10px">
+        <span class="pill">Visualización 2D</span>
+        <span class="pill">Visualización 3D</span>
+        <span class="pill">Cálculo simbólico</span>
+        <span class="pill">Aplicaciones físicas</span>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" onclick="go('lab2d')">Ir al Lab 2D →</button>
+        <button class="btn ghost" onclick="go('teoria')">Ver teoría</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>¿Qué puedes hacer aquí?</h3>
+      <ul>
+        <li>📐 <b>Construir vectores</b> arrastrando sus puntas en un plano cartesiano.</li>
+        <li>➕ <b>Sumar, restar</b> y multiplicar vectores en tiempo real.</li>
+        <li>🧭 Calcular <b>magnitud, dirección y ángulos directores</b>.</li>
+        <li>🧲 <b>Producto escalar</b> (·) y <b>producto vectorial</b> (×).</li>
+        <li>🌀 Visualizar el <b>torque</b> $\vec\tau = \vec r \times \vec F$.</li>
+        <li>⚖️ Resolver problemas de <b>equilibrio de fuerzas</b>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top:18px">
+    <div class="card"><h3>🧪 Lab 2D</h3><p>Crea vectores en el plano, arrastra sus puntas y observa la resultante, el ángulo y las componentes.</p></div>
+    <div class="card"><h3>🌐 Lab 3D</h3><p>Explora vectores en el espacio tridimensional. Rota la cámara con el ratón y observa los ángulos directores.</p></div>
+    <div class="card"><h3>🎯 Ejercicios</h3><p>Resuelve problemas guiados con retroalimentación inmediata. Ideal para autoevaluación.</p></div>
+  </div>
+</section>
+
+<section id="teoria">
+  <div class="card">
+    <h1>📘 Fundamentos de vectores</h1>
+    <p>Un <b>vector</b> es una magnitud física que posee <b>módulo</b>, <b>dirección</b> y <b>sentido</b>.</p>
+    <h2>1. Notación y componentes</h2>
+    <div class="math-block">$$\vec A = A_x\,\hat\imath + A_y\,\hat\jmath \quad\text{(2D)}\qquad \vec A = A_x\,\hat\imath + A_y\,\hat\jmath + A_z\,\hat k \quad\text{(3D)}$$</div>
+    <h2>2. Magnitud</h2>
+    <div class="math-block">$$|\vec A| = \sqrt{A_x^2 + A_y^2}\qquad |\vec A| = \sqrt{A_x^2 + A_y^2 + A_z^2}$$</div>
+    <h2>3. Ángulos directores</h2>
+    <div class="math-block">$$\cos\alpha = \frac{A_x}{|\vec A|},\quad \cos\beta = \frac{A_y}{|\vec A|},\quad \cos\gamma = \frac{A_z}{|\vec A|}$$</div>
+    <h2>4. Producto escalar</h2>
+    <div class="math-block">$$\vec A\cdot\vec B = A_xB_x + A_yB_y + A_zB_z = |\vec A||\vec B|\cos\theta$$</div>
+    <h2>5. Producto vectorial</h2>
+    <div class="math-block">$$\vec A\times\vec B = \begin{vmatrix}\hat\imath & \hat\jmath & \hat k\\ A_x & A_y & A_z\\ B_x & B_y & B_z\end{vmatrix}$$</div>
+  </div>
+</section>
+
+<section id="lab2d">
+  <div class="card">
+    <h1>🧪 Laboratorio 2D</h1>
+    <p>Arrastra las puntas de los vectores $\vec A$ (cian) y $\vec B$ (magenta). La resultante $\vec R = \vec A + \vec B$ se dibuja automáticamente (verde).</p>
+    <div class="grid-2" style="margin-top:10px">
+      <div>
+        <div class="canvas-wrap">
+          <canvas id="cv2d" width="700" height="560"></canvas>
+          <div class="legend">
+            <div><span class="sw" style="background:#4cc9f0"></span> $\vec A$</div>
+            <div><span class="sw" style="background:#f72585"></span> $\vec B$</div>
+            <div><span class="sw" style="background:#2ecc71"></span> $\vec R = \vec A+\vec B$</div>
+            <div><span class="sw" style="background:#f1c40f"></span> $\vec D = \vec A-\vec B$</div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn ghost" onclick="reset2D()">🔄 Reiniciar</button>
+          <label style="margin:0"><input type="checkbox" id="showDiff" checked> Mostrar $\vec A - \vec B$</label>
+          <label style="margin:0"><input type="checkbox" id="showGrid" checked> Cuadrícula</label>
+          <label style="margin:0"><input type="checkbox" id="showAngles" checked> Ángulos</label>
+        </div>
+      </div>
+      <div>
+        <h3>Propiedades en tiempo real</h3>
+        <div id="props2d" class="result"></div>
+        <h3>Operaciones</h3>
+        <div class="grid-2">
+          <div>
+            <label>Operación</label>
+            <select id="op2d">
+              <option value="sum">Suma $\vec A+\vec B$</option>
+              <option value="sub">Resta $\vec A-\vec B$</option>
+              <option value="dot">Producto escalar $\vec A\cdot \vec B$</option>
+              <option value="cross">Producto vectorial (módulo)</option>
+              <option value="angle">Ángulo entre $\vec A$ y $\vec B$</option>
+            </select>
+          </div>
+          <div>
+            <label>Escalar $k$</label>
+            <input type="number" id="kScalar" value="1" step="0.1">
+          </div>
+        </div>
+        <div id="opResult" class="result" style="margin-top:10px"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="lab3d">
+  <div class="card">
+    <h1>🌐 Laboratorio 3D</h1>
+    <p>Visualiza vectores en el espacio. Rota la cámara con el ratón (clic + arrastrar), acerca con la rueda.</p>
+    <div class="info" style="margin:10px 0">
+      💡 <b>Convención de ejes:</b> 🔴 Rojo = <b>X</b> &nbsp; 🟢 Verde = <b>Y</b> &nbsp; 🔵 Azul = <b>Z</b>. Sistema <b>dextrógiro</b>.
+    </div>
+    <div class="grid-2" style="margin-top:10px">
+      <div>
+        <div class="canvas-wrap">
+          <div id="cv3d" style="height:560px; width:100%;"></div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn ghost" onclick="reset3D()">🔄 Reiniciar vista</button>
+          <label style="margin:0"><input type="checkbox" id="show3DSum" checked> Mostrar $\vec A+\vec B$</label>
+          <label style="margin:0"><input type="checkbox" id="show3DCross" checked> Mostrar $\vec A\times\vec B$</label>
+        </div>
+      </div>
+      <div>
+        <h3>Componentes de $\vec A$</h3>
+        <div class="grid-3">
+          <div><label>Ax</label><input type="number" id="A3x" value="3" step="0.5"></div>
+          <div><label>Ay</label><input type="number" id="A3y" value="2" step="0.5"></div>
+          <div><label>Az</label><input type="number" id="A3z" value="1" step="0.5"></div>
+        </div>
+        <h3>Componentes de $\vec B$</h3>
+        <div class="grid-3">
+          <div><label>Bx</label><input type="number" id="B3x" value="-1" step="0.5"></div>
+          <div><label>By</label><input type="number" id="B3y" value="3" step="0.5"></div>
+          <div><label>Bz</label><input type="number" id="B3z" value="2" step="0.5"></div>
+        </div>
+        <h3>Propiedades</h3>
+        <div id="props3d" class="result"></div>
+        <div class="legend" style="position:relative;margin-top:10px;">
+          <div><span class="sw" style="background:#4cc9f0"></span> $\vec A$</div>
+          <div><span class="sw" style="background:#f72585"></span> $\vec B$</div>
+          <div><span class="sw" style="background:#2ecc71"></span> $\vec R = \vec A+\vec B$</div>
+          <div><span class="sw" style="background:#f1c40f"></span> $\vec C = \vec A\times\vec B$</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="calc">
+  <div class="card">
+    <h1>🧮 Calculadora vectorial</h1>
+    <p>Introduce las componentes y obtén todas las operaciones de una vez.</p>
+    <div class="grid-2" style="margin-top:10px">
+      <div>
+        <h3>Vector $\vec A$</h3>
+        <div class="grid-3">
+          <div><label>Ax</label><input type="number" id="cAx" value="3" step="0.1"></div>
+          <div><label>Ay</label><input type="number" id="cAy" value="4" step="0.1"></div>
+          <div><label>Az</label><input type="number" id="cAz" value="0" step="0.1"></div>
+        </div>
+        <h3>Vector $\vec B$</h3>
+        <div class="grid-3">
+          <div><label>Bx</label><input type="number" id="cBx" value="-1" step="0.1"></div>
+          <div><label>By</label><input type="number" id="cBy" value="2" step="0.1"></div>
+          <div><label>Bz</label><input type="number" id="cBz" value="2" step="0.1"></div>
+        </div>
+        <h3>Escalar $k$</h3>
+        <input type="number" id="cK" value="2" step="0.1">
+        <div class="row" style="margin-top:10px">
+          <button class="btn" onclick="calcAll()">Calcular todo</button>
+        </div>
+      </div>
+      <div>
+        <h3>Resultados</h3>
+        <div id="calcOut" class="result"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="fuerzas">
+  <div class="card">
+    <h1>⚖️ Equilibrio de fuerzas</h1>
+    <p>Un cuerpo está en <b>equilibrio</b> si la resultante es cero: $\sum\vec F = \vec 0$.</p>
+    <div class="grid-2" style="margin-top:10px">
+      <div>
+        <div id="forcesList"></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" onclick="addForce()">➕ Añadir fuerza</button>
+          <button class="btn ghost" onclick="resetForces()">🔄 Reiniciar</button>
+        </div>
+      </div>
+      <div>
+        <div class="canvas-wrap">
+          <canvas id="cvF" width="700" height="560"></canvas>
+        </div>
+        <h3>Resultante</h3>
+        <div id="forceResult" class="result"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="torque">
+  <div class="card">
+    <h1>🌀 Torque (momento de una fuerza)</h1>
+    <div class="math-block">$$\vec\tau = \vec r \times \vec F$$</div>
+    <div class="grid-2" style="margin-top:10px">
+      <div>
+        <h3>Vector posición $\vec r$</h3>
+        <div class="grid-3">
+          <div><label>rx</label><input type="number" id="trx" value="3" step="0.1"></div>
+          <div><label>ry</label><input type="number" id="try_" value="0" step="0.1"></div>
+          <div><label>rz</label><input type="number" id="trz" value="0" step="0.1"></div>
+        </div>
+        <h3>Fuerza $\vec F$</h3>
+        <div class="grid-3">
+          <div><label>Fx</label><input type="number" id="tfx" value="0" step="0.1"></div>
+          <div><label>Fy</label><input type="number" id="tfy" value="5" step="0.1"></div>
+          <div><label>Fz</label><input type="number" id="tfz" value="0" step="0.1"></div>
+        </div>
+        <button class="btn" style="margin-top:10px" onclick="calcTorque()">Calcular torque</button>
+        <h3>Resultado</h3>
+        <div id="torqueOut" class="result"></div>
+      </div>
+      <div>
+        <div class="canvas-wrap">
+          <canvas id="cvT" width="700" height="560"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ejercicios">
+  <div class="card">
+    <h1>🎯 Ejercicios interactivos</h1>
+    <div id="exList"></div>
+  </div>
+</section>
+
+</main>
+
+<footer>Vector Lab · Laboratorio virtual de vectores 2D y 3D · Material educativo para Física Básica</footer>
+
+<script>
+const tabs = document.querySelectorAll('#tabs button');
+tabs.forEach(b=>b.addEventListener('click',()=>go(b.dataset.tab)));
+function go(id){
+  document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  tabs.forEach(b=>b.classList.toggle('active', b.dataset.tab===id));
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='lab3d') setTimeout(init3D,50);
+  if(id==='fuerzas') drawForces();
+  if(id==='torque') drawTorque();
+}
+
+const v = {
+  add:(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]],
+  sub:(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]],
+  scale:(a,k)=>[a[0]*k,a[1]*k,a[2]*k],
+  mag:a=>Math.hypot(a[0],a[1],a[2]),
+  dot:(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],
+  cross:(a,b)=>[a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]],
+  unit:a=>{const m=v.mag(a);return m? [a[0]/m,a[1]/m,a[2]/m]:[0,0,0]},
+  angle:(a,b)=>{const m=v.mag(a)*v.mag(b);return m? Math.acos(Math.max(-1,Math.min(1,v.dot(a,b)/m))):0}
+};
+const fmt=(n,d=2)=>Number(n).toFixed(d);
+const deg=r=>r*180/Math.PI;
+const rad=d=>d*Math.PI/180;
+
+/* LAB 2D */
+const cv2d = document.getElementById('cv2d');
+const ctx2 = cv2d.getContext('2d');
+let A2 = [3,2,0], B2 = [-2,3,0];
+let scale2 = 40, origin2 = {x: cv2d.width/2, y: cv2d.height/2}, drag2 = null, zoom2 = 1;
+
+function reset2D(){ A2=[3,2,0]; B2=[-2,3,0]; draw2D(); }
+function worldToScreen(p){ return { x: origin2.x + p[0]*scale2*zoom2, y: origin2.y - p[1]*scale2*zoom2 }; }
+function screenToWorld(sx,sy){ return [(sx-origin2.x)/(scale2*zoom2), -(sy-origin2.y)/(scale2*zoom2), 0]; }
+function drawArrow(ctx, from, to, color, label, lw=3){
+  const a = worldToScreen(from), b = worldToScreen(to);
+  const ang = Math.atan2(b.y-a.y, b.x-a.x);
+  const head = 12;
+  ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=lw;
+  ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(b.x,b.y);
+  ctx.lineTo(b.x-head*Math.cos(ang-0.4), b.y-head*Math.sin(ang-0.4));
+  ctx.lineTo(b.x-head*Math.cos(ang+0.4), b.y-head*Math.sin(ang+0.4));
+  ctx.closePath(); ctx.fill();
+  if(label){ ctx.font='bold 14px Segoe UI'; ctx.fillText(label, b.x+8, b.y-6); }
+  ctx.beginPath(); ctx.arc(b.x,b.y,6,0,Math.PI*2); ctx.fill();
+}
+function draw2D(){
+  const W=cv2d.width, H=cv2d.height;
+  ctx2.clearRect(0,0,W,H);
+  ctx2.fillStyle='#0a1028'; ctx2.fillRect(0,0,W,H);
+  if(document.getElementById('showGrid').checked){
+    ctx2.strokeStyle='#1a2550'; ctx2.lineWidth=1;
+    const step = scale2*zoom2;
+    for(let x=origin2.x%step; x<W; x+=step){ ctx2.beginPath(); ctx2.moveTo(x,0); ctx2.lineTo(x,H); ctx2.stroke(); }
+    for(let y=origin2.y%step; y<H; y+=step){ ctx2.beginPath(); ctx2.moveTo(0,y); ctx2.lineTo(W,y); ctx2.stroke(); }
+  }
+  ctx2.strokeStyle='#3a4a8a'; ctx2.lineWidth=1.5;
+  ctx2.beginPath(); ctx2.moveTo(0,origin2.y); ctx2.lineTo(W,origin2.y); ctx2.stroke();
+  ctx2.beginPath(); ctx2.moveTo(origin2.x,0); ctx2.lineTo(origin2.x,H); ctx2.stroke();
+  ctx2.fillStyle='#9aa3c7'; ctx2.font='12px Segoe UI';
+  ctx2.fillText('x', W-14, origin2.y-6); ctx2.fillText('y', origin2.x+6, 14);
+  const R = v.add(A2,B2), D = v.sub(A2,B2);
+  drawArrow(ctx2,[0,0,0],A2,'#4cc9f0','A');
+  drawArrow(ctx2,[0,0,0],B2,'#f72585','B');
+  drawArrow(ctx2,[0,0,0],R,'#2ecc71','R = A+B');
+  if(document.getElementById('showDiff').checked) drawArrow(ctx2,B2,A2,'#f1c40f','A−B',2);
+  if(document.getElementById('showAngles').checked){
+    drawArc([0,0,0], Math.atan2(A2[1],A2[0]), '#4cc9f0', fmt(deg(Math.atan2(A2[1],A2[0])),1)+'°');
+    drawArc([0,0,0], Math.atan2(B2[1],B2[0]), '#f72585', fmt(deg(Math.atan2(B2[1],B2[0])),1)+'°');
+  }
+  updateProps2D();
+}
+function drawArc(o, ang, color, label){
+  const c = worldToScreen(o);
+  ctx2.strokeStyle=color; ctx2.lineWidth=2;
+  ctx2.beginPath(); ctx2.arc(c.x,c.y,30,0,-ang, ang>0); ctx2.stroke();
+  ctx2.fillStyle=color; ctx2.font='11px Segoe UI';
+  ctx2.fillText(label, c.x+34, c.y-4);
+}
+function updateProps2D(){
+  const R = v.add(A2,B2), D = v.sub(A2,B2);
+  const angA = Math.atan2(A2[1],A2[0]), angB = Math.atan2(B2[1],B2[0]), angR = Math.atan2(R[1],R[0]);
+  const dot = v.dot(A2,B2), crossZ = A2[0]*B2[1]-A2[1]*B2[0], angAB = v.angle(A2,B2);
+  document.getElementById('props2d').innerHTML =
+`A = (${fmt(A2[0])}, ${fmt(A2[1])})     |A| = ${fmt(v.mag(A2))}     θA = ${fmt(deg(angA))}°
+B = (${fmt(B2[0])}, ${fmt(B2[1])})     |B| = ${fmt(v.mag(B2))}     θB = ${fmt(deg(angB))}°
+R = A+B = (${fmt(R[0])}, ${fmt(R[1])}) |R| = ${fmt(v.mag(R))}     θR = ${fmt(deg(angR))}°
+D = A−B = (${fmt(D[0])}, ${fmt(D[1])}) |D| = ${fmt(v.mag(D))}
+
+A·B = ${fmt(dot)}
+|A×B| = ${fmt(Math.abs(crossZ))}   (sentido: ${crossZ>=0?'saliente (+k)':'entrante (−k)'})
+Ángulo entre A y B: ${fmt(deg(angAB))}°`;
+  updateOp2D();
+}
+function updateOp2D(){
+  const op = document.getElementById('op2d').value;
+  const k = parseFloat(document.getElementById('kScalar').value)||0;
+  let out='';
+  if(op==='sum'){ const R=v.add(A2,B2); out=`A+B = (${fmt(R[0])}, ${fmt(R[1])})  |R| = ${fmt(v.mag(R))}`; }
+  if(op==='sub'){ const D=v.sub(A2,B2); out=`A−B = (${fmt(D[0])}, ${fmt(D[1])})  |D| = ${fmt(v.mag(D))}`; }
+  if(op==='dot'){ out=`A·B = ${fmt(v.dot(A2,B2))}`; }
+  if(op==='cross'){ const z=A2[0]*B2[1]-A2[1]*B2[0]; out=`A×B = ${fmt(z)} k̂   (|A×B| = ${fmt(Math.abs(z))})`; }
+  if(op==='angle'){ out=`θ = ${fmt(deg(v.angle(A2,B2)))}°`; }
+  out += `\n\nk·A = (${fmt(k*A2[0])}, ${fmt(k*A2[1])})   |kA| = ${fmt(Math.abs(k)*v.mag(A2))}`;
+  document.getElementById('opResult').textContent = out;
+}
+['showDiff','showGrid','showAngles','op2d','kScalar'].forEach(id=>document.getElementById(id).addEventListener('input',draw2D));
+
+function getMouse(e){
+  const r = cv2d.getBoundingClientRect();
+  return {sx:(e.clientX-r.left)*(cv2d.width/r.width), sy:(e.clientY-r.top)*(cv2d.height/r.height)};
+}
+function near(sx,sy,p){ const s = worldToScreen(p); return Math.hypot(s.x-sx, s.y-sy) < 14; }
+cv2d.addEventListener('mousedown',e=>{
+  const {sx,sy}=getMouse(e);
+  if(near(sx,sy,A2)) drag2='A'; else if(near(sx,sy,B2)) drag2='B';
+});
+cv2d.addEventListener('mousemove',e=>{
+  if(!drag2) return;
+  const {sx,sy}=getMouse(e); const w = screenToWorld(sx,sy);
+  if(drag2==='A') A2=[w[0],w[1],0]; if(drag2==='B') B2=[w[0],w[1],0];
+  draw2D();
+});
+window.addEventListener('mouseup',()=>drag2=null);
+cv2d.addEventListener('wheel',e=>{
+  e.preventDefault(); zoom2 *= e.deltaY<0 ? 1.1 : 0.9;
+  zoom2 = Math.max(0.3, Math.min(3,zoom2)); draw2D();
+},{passive:false});
+draw2D();
+
+/* LAB 3D */
+let scene3, camera3, renderer3, controls3;
+let vecA3, vecB3, vecR3, vecC3;
+let inited3 = false;
+
+function makeTextSprite(text, color){
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 128; canvas.height = 128;
+  ctx.font = 'bold 90px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0,0,0,0.8)';
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = color;
+  ctx.fillText(text, 64, 64);
+  const texture = new THREE.CanvasTexture(canvas);
+  const material = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+  const sprite = new THREE.Sprite(material);
+  sprite.scale.set(1, 1, 1);
+  return sprite;
+}
+
+function init3D(){
+  if(inited3){ update3D(); return; }
+  if(typeof THREE === 'undefined'){
+    document.getElementById('cv3d').innerHTML = '<div style="padding:20px;color:#f72585;">Error: Three.js no se pudo cargar. Verifica tu conexión a internet.</div>';
+    return;
+  }
+  const container = document.getElementById('cv3d');
+  const W = container.clientWidth || 700, H = container.clientHeight || 560;
+  
+  scene3 = new THREE.Scene();
+  scene3.background = new THREE.Color(0x0a1028);
+  
+  camera3 = new THREE.PerspectiveCamera(50, W/H, 0.1, 1000);
+  camera3.position.set(8, 6, 8);
+  camera3.lookAt(0, 0, 0);
+  
+  renderer3 = new THREE.WebGLRenderer({antialias:true});
+  renderer3.setSize(W, H);
+  renderer3.setPixelRatio(window.devicePixelRatio);
+  container.appendChild(renderer3.domElement);
+  
+  controls3 = new THREE.OrbitControls(camera3, renderer3.domElement);
+  controls3.enableDamping = true;
+  controls3.dampingFactor = 0.05;
+  
+  scene3.add(new THREE.AmbientLight(0xffffff, 0.7));
+  const dl = new THREE.DirectionalLight(0xffffff, 0.8);
+  dl.position.set(5, 10, 7); scene3.add(dl);
+  const dl2 = new THREE.DirectionalLight(0xffffff, 0.4);
+  dl2.position.set(-5, -5, -5); scene3.add(dl2);
+  
+  scene3.add(new THREE.GridHelper(10, 10, 0x3a4a8a, 0x1a2550));
+  const axesHelper = new THREE.AxesHelper(6);
+  scene3.add(axesHelper);
+  
+  const labelX = makeTextSprite('X', '#ff4444');
+  const labelY = makeTextSprite('Y', '#44ff44');
+  const labelZ = makeTextSprite('Z', '#4488ff');
+  labelX.position.set(6.5, 0, 0);
+  labelY.position.set(0, 6.5, 0);
+  labelZ.position.set(0, 0, 6.5);
+  scene3.add(labelX, labelY, labelZ);
+  
+  vecA3 = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 1, 0x4cc9f0, 0.3, 0.15);
+  vecB3 = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 1, 0xf72585, 0.3, 0.15);
+  vecR3 = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 1, 0x2ecc71, 0.3, 0.15);
+  vecC3 = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,0), 1, 0xf1c40f, 0.3, 0.15);
+  scene3.add(vecA3, vecB3, vecR3, vecC3);
+  
+  ['A3x','A3y','A3z','B3x','B3y','B3z','show3DSum','show3DCross'].forEach(id=>{
+    const elem = document.getElementById(id);
+    if(elem) elem.addEventListener('input', update3D);
+  });
+  
+  inited3 = true;
+  update3D();
+  animate3();
+}
+
+function updateArrowHelper(arrow, vec, color){
+  const len = Math.hypot(vec[0], vec[1], vec[2]);
+  if(len < 0.001){ arrow.visible = false; return; }
+  arrow.visible = true;
+  const dir = new THREE.Vector3(vec[0], vec[1], vec[2]).normalize();
+  arrow.setDirection(dir);
+  arrow.setLength(len, Math.max(0.2, len * 0.2), Math.max(0.1, len * 0.1));
+  arrow.setColor(new THREE.Color(color));
+}
+
+function update3D(){
+  const A=[+document.getElementById('A3x').value||0,+document.getElementById('A3y').value||0,+document.getElementById('A3z').value||0];
+  const B=[+document.getElementById('B3x').value||0,+document.getElementById('B3y').value||0,+document.getElementById('B3z').value||0];
+  updateArrowHelper(vecA3, A, 0x4cc9f0);
+  updateArrowHelper(vecB3, B, 0xf72585);
+  const R = v.add(A, B), C = v.cross(A, B);
+  updateArrowHelper(vecR3, document.getElementById('show3DSum').checked ? R : [0,0,0], 0x2ecc71);
+  updateArrowHelper(vecC3, document.getElementById('show3DCross').checked ? C : [0,0,0], 0xf1c40f);
+  
+  const mA=v.mag(A), mB=v.mag(B), mR=v.mag(R), mC=v.mag(C);
+  const dot = v.dot(A, B), angAB = v.angle(A, B);
+  document.getElementById('props3d').innerHTML =
+`A = (${fmt(A[0])}, ${fmt(A[1])}, ${fmt(A[2])})   |A| = ${fmt(mA)}
+B = (${fmt(B[0])}, ${fmt(B[1])}, ${fmt(B[2])})   |B| = ${fmt(mB)}
+R = A+B = (${fmt(R[0])}, ${fmt(R[1])}, ${fmt(R[2])})   |R| = ${fmt(mR)}
+C = A×B = (${fmt(C[0])}, ${fmt(C[1])}, ${fmt(C[2])})   |C| = ${fmt(mC)}
+
+A·B = ${fmt(dot)}
+Ángulo entre A y B: ${fmt(deg(angAB))}°
+
+Ángulos directores de A:
+  α (con X) = ${fmt(deg(Math.acos(A[0]/(mA||1))))}°
+  β (con Y) = ${fmt(deg(Math.acos(A[1]/(mA||1))))}°
+  γ (con Z) = ${fmt(deg(Math.acos(A[2]/(mA||1))))}°`;
+}
+
+function animate3(){
+  requestAnimationFrame(animate3);
+  if(controls3) controls3.update();
+  if(renderer3 && scene3 && camera3) renderer3.render(scene3, camera3);
+}
+
+function reset3D(){
+  if(camera3){
+    camera3.position.set(8, 6, 8);
+    camera3.lookAt(0, 0, 0);
+    if(controls3){ controls3.target.set(0, 0, 0); controls3.update(); }
+  }
+}
+
+/* CALCULADORA */
+function calcAll(){
+  const A=[+document.getElementById('cAx').value,+document.getElementById('cAy').value,+document.getElementById('cAz').value];
+  const B=[+document.getElementById('cBx').value,+document.getElementById('cBy').value,+document.getElementById('cBz').value];
+  const k=+document.getElementById('cK').value;
+  const R=v.add(A,B), D=v.sub(A,B), P=v.scale(A,k);
+  const dot=v.dot(A,B), cross=v.cross(A,B), ang=deg(v.angle(A,B));
+  const mA=v.mag(A), mB=v.mag(B);
+  const unitA=v.unit(A), unitB=v.unit(B);
+  document.getElementById('calcOut').innerHTML =
+`A = (${fmt(A[0])}, ${fmt(A[1])}, ${fmt(A[2])})      |A| = ${fmt(mA)}
+B = (${fmt(B[0])}, ${fmt(B[1])}, ${fmt(B[2])})      |B| = ${fmt(mB)}
+
+A + B = (${fmt(R[0])}, ${fmt(R[1])}, ${fmt(R[2])})
+A − B = (${fmt(D[0])}, ${fmt(D[1])}, ${fmt(D[2])})
+k·A   = (${fmt(P[0])}, ${fmt(P[1])}, ${fmt(P[2])})     con k = ${k}
+
+A · B = ${fmt(dot)}
+A × B = (${fmt(cross[0])}, ${fmt(cross[1])}, ${fmt(cross[2])})
+|A × B| = ${fmt(v.mag(cross))}
+
+Ángulo entre A y B: ${fmt(ang)}°
+${Math.abs(dot)<1e-9?'→ Son PERPENDICULARES ✓':''}
+${Math.abs(v.mag(cross))<1e-9?'→ Son PARALELOS ✓':''}
+
+Versores:
+  ûA = (${fmt(unitA[0])}, ${fmt(unitA[1])}, ${fmt(unitA[2])})
+  ûB = (${fmt(unitB[0])}, ${fmt(unitB[1])}, ${fmt(unitB[2])})`;
+}
+
+/* FUERZAS */
+let forces = [{mag:5, ang:30},{mag:4, ang:120},{mag:3, ang:240}];
+function addForce(){ forces.push({mag:1, ang:0}); renderForces(); drawForces(); }
+function resetForces(){ forces=[{mag:5,ang:30},{mag:4,ang:120},{mag:3,ang:240}]; renderForces(); drawForces(); }
+function renderForces(){
+  const cont = document.getElementById('forcesList');
+  cont.innerHTML = '';
+  forces.forEach((f,i)=>{
+    const div = document.createElement('div');
+    div.className='grid-3'; div.style.marginBottom='6px';
+    div.innerHTML = `
+      <div><label>F${i+1} magnitud</label><input type="number" value="${f.mag}" step="0.1" data-i="${i}" data-k="mag"></div>
+      <div><label>F${i+1} ángulo (°)</label><input type="number" value="${f.ang}" step="1" data-i="${i}" data-k="ang"></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn warn" data-del="${i}">🗑</button></div>`;
+    cont.appendChild(div);
+  });
+  cont.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',e=>{
+    forces[+e.target.dataset.i][e.target.dataset.k]=+e.target.value; drawForces();
+  }));
+  cont.querySelectorAll('button[data-del]').forEach(b=>b.addEventListener('click',e=>{
+    forces.splice(+e.target.dataset.del,1); renderForces(); drawForces();
+  }));
+}
+function drawForces(){
+  const cv = document.getElementById('cvF');
+  if(!cv) return;
+  const c = cv.getContext('2d'), W=cv.width, H=cv.height;
+  c.clearRect(0,0,W,H); c.fillStyle='#0a1028'; c.fillRect(0,0,W,H);
+  const ox=W/2, oy=H/2, sc=30;
+  c.strokeStyle='#3a4a8a'; c.lineWidth=1.5;
+  c.beginPath(); c.moveTo(0,oy); c.lineTo(W,oy); c.stroke();
+  c.beginPath(); c.moveTo(ox,0); c.lineTo(ox,H); c.stroke();
+  c.fillStyle='#9aa3c7'; c.font='12px Segoe UI';
+  c.fillText('x',W-14,oy-6); c.fillText('y',ox+6,14);
+  let Rx=0,Ry=0;
+  const colors=['#4cc9f0','#f72585','#7209b7','#2ecc71','#f1c40f','#e67e22','#1abc9c'];
+  forces.forEach((f,i)=>{
+    const a=rad(f.ang), fx=f.mag*Math.cos(a), fy=f.mag*Math.sin(a);
+    Rx+=fx; Ry+=fy;
+    const ex=ox+fx*sc, ey=oy-fy*sc, col=colors[i%colors.length];
+    c.strokeStyle=col; c.fillStyle=col; c.lineWidth=3;
+    c.beginPath(); c.moveTo(ox,oy); c.lineTo(ex,ey); c.stroke();
+    const ang=Math.atan2(ey-oy,ex-ox);
+    c.beginPath(); c.moveTo(ex,ey);
+    c.lineTo(ex-10*Math.cos(ang-0.4), ey-10*Math.sin(ang-0.4));
+    c.lineTo(ex-10*Math.cos(ang+0.4), ey-10*Math.sin(ang+0.4));
+    c.closePath(); c.fill();
+    c.font='bold 13px Segoe UI'; c.fillText('F'+(i+1), ex+6, ey-6);
+  });
+  const rex=ox+Rx*sc, rey=oy-Ry*sc;
+  c.strokeStyle='#2ecc71'; c.fillStyle='#2ecc71'; c.lineWidth=4;
+  c.setLineDash([6,4]);
+  c.beginPath(); c.moveTo(ox,oy); c.lineTo(rex,rey); c.stroke();
+  c.setLineDash([]);
+  const ang=Math.atan2(rey-oy,rex-ox);
+  c.beginPath(); c.moveTo(rex,rey);
+  c.lineTo(rex-12*Math.cos(ang-0.4), rey-12*Math.sin(ang-0.4));
+  c.lineTo(rex-12*Math.cos(ang+0.4), rey-12*Math.sin(ang+0.4));
+  c.closePath(); c.fill();
+  c.font='bold 14px Segoe UI'; c.fillText('ΣF', rex+8, rey-6);
+  const Rmag=Math.hypot(Rx,Ry), Rang=Math.atan2(Ry,Rx)*180/Math.PI;
+  document.getElementById('forceResult').innerHTML =
+`ΣFx = ${fmt(Rx)} N
+ΣFy = ${fmt(Ry)} N
+|R|  = ${fmt(Rmag)} N
+θ    = ${fmt(Rang)}°
+${Rmag<1e-6?'<br><b style="color:#2ecc71">✓ El sistema está en EQUILIBRIO</b>':'<br><b style="color:#f72585">✗ No hay equilibrio</b>'}`;
+}
+renderForces();
+
+/* TORQUE */
+function calcTorque(){
+  const r=[+document.getElementById('trx').value,+document.getElementById('try_').value,+document.getElementById('trz').value];
+  const F=[+document.getElementById('tfx').value,+document.getElementById('tfy').value,+document.getElementById('tfz').value];
+  const tau=v.cross(r,F), mag=v.mag(tau);
+  document.getElementById('torqueOut').innerHTML =
+`r = (${fmt(r[0])}, ${fmt(r[1])}, ${fmt(r[2])})
+F = (${fmt(F[0])}, ${fmt(F[1])}, ${fmt(F[2])})
+
+τ = r × F = (${fmt(tau[0])}, ${fmt(tau[1])}, ${fmt(tau[2])})
+|τ| = ${fmt(mag)}
+
+Sentido: ${tau[2]>0?'antihorario (saliente +k)':tau[2]<0?'horario (entrante −k)':'en el plano xy'}`;
+  drawTorque();
+}
+function drawTorque(){
+  const cv=document.getElementById('cvT');
+  if(!cv) return;
+  const c=cv.getContext('2d'), W=cv.width, H=cv.height;
+  c.clearRect(0,0,W,H); c.fillStyle='#0a1028'; c.fillRect(0,0,W,H);
+  const ox=W/2, oy=H/2, sc=40;
+  const r=[+document.getElementById('trx').value,+document.getElementById('try_').value];
+  const F=[+document.getElementById('tfx').value,+document.getElementById('tfy').value];
+  c.strokeStyle='#3a4a8a'; c.lineWidth=1.5;
+  c.beginPath(); c.moveTo(0,oy); c.lineTo(W,oy); c.stroke();
+  c.beginPath(); c.moveTo(ox,0); c.lineTo(ox,H); c.stroke();
+  const rx=ox+r[0]*sc, ry=oy-r[1]*sc;
+  c.strokeStyle='#4cc9f0'; c.fillStyle='#4cc9f0'; c.lineWidth=3;
+  c.beginPath(); c.moveTo(ox,oy); c.lineTo(rx,ry); c.stroke();
+  let a=Math.atan2(ry-oy,rx-ox);
+  c.beginPath(); c.moveTo(rx,ry);
+  c.lineTo(rx-12*Math.cos(a-0.4),ry-12*Math.sin(a-0.4));
+  c.lineTo(rx-12*Math.cos(a+0.4),ry-12*Math.sin(a+0.4));
+  c.closePath(); c.fill();
+  c.font='bold 14px Segoe UI'; c.fillText('r',rx+6,ry-6);
+  const fx=rx+F[0]*sc, fy=ry-F[1]*sc;
+  c.strokeStyle='#f72585'; c.fillStyle='#f72585';
+  c.beginPath(); c.moveTo(rx,ry); c.lineTo(fx,fy); c.stroke();
+  a=Math.atan2(fy-ry,fx-rx);
+  c.beginPath(); c.moveTo(fx,fy);
+  c.lineTo(fx-12*Math.cos(a-0.4),fy-12*Math.sin(a-0.4));
+  c.lineTo(fx-12*Math.cos(a+0.4),fy-12*Math.sin(a+0.4));
+  c.closePath(); c.fill();
+  c.fillText('F',fx+6,fy-6);
+  const tau=r[0]*F[1]-r[1]*F[0];
+  c.strokeStyle='#2ecc71'; c.lineWidth=2;
+  c.beginPath(); c.arc(ox,oy,25,0,-Math.atan2(r[1],r[0]), tau>=0); c.stroke();
+  c.fillStyle='#2ecc71'; c.font='12px Segoe UI'; c.fillText('τ',ox+30,oy-10);
+  c.fillStyle='#fff'; c.beginPath(); c.arc(rx,ry,4,0,Math.PI*2); c.fill();
+}
+calcTorque();
+
+/* EJERCICIOS */
+const exercises = [
+  {q:'Dados $\\vec A=(3,4)$ y $\\vec B=(1,2)$, calcula el módulo de $\\vec A+\\vec B$.', a: Math.hypot(4,6), hint:'(3+1, 4+2) = (4,6). Pitágoras: √(16+36)'},
+  {q:'Calcula $\\vec A\\cdot\\vec B$ con $\\vec A=(2,-1,3)$ y $\\vec B=(4,0,-2)$.', a: 2, hint:'2·4 + (-1)·0 + 3·(-2) = 2'},
+  {q:'Si $\\vec A=(1,2,2)$, ¿cuál es su magnitud?', a: 3, hint:'√(1+4+4) = √9 = 3'},
+  {q:'Ángulo (en grados) entre $\\vec A=(1,0)$ y $\\vec B=(1,1)$.', a: 45, hint:'cos θ = 1/√2 → θ = 45°'},
+  {q:'Si $\\vec r=(2,0,0)$ m y $\\vec F=(0,5,0)$ N, ¿cuál es $|\\vec r\\times\\vec F|$?', a: 10, hint:'r × F = (0,0,10), |τ| = 10 N·m'}
+];
+function renderExercises(){
+  const cont=document.getElementById('exList'); cont.innerHTML='';
+  exercises.forEach((ex,i)=>{
+    const div=document.createElement('div');
+    div.className='card'; div.style.marginBottom='12px';
+    div.innerHTML=`
+      <h3>Ejercicio ${i+1}</h3>
+      <p>${ex.q}</p>
+      <div class="row">
+        <div style="flex:1;min-width:180px"><label>Tu respuesta</label><input type="number" step="0.01" id="ex${i}"></div>
+        <div style="align-self:flex-end"><button class="btn" onclick="checkEx(${i})">Comprobar</button></div>
+      </div>
+      <div id="exFb${i}" style="margin-top:8px"></div>
+      <details><summary>Ver pista</summary><p>${ex.hint}</p></details>`;
+    cont.appendChild(div);
+  });
+  renderMathInElement(cont,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+}
+function checkEx(i){
+  const val=+document.getElementById('ex'+i).value;
+  const ok=Math.abs(val-exercises[i].a)<0.05;
+  document.getElementById('exFb'+i).innerHTML = ok
+    ? `<div class="ok-box">✅ ¡Correcto! La respuesta es ${exercises[i].a}.</div>`
+    : `<div class="warn-box">❌ No es correcto. La respuesta es <b>${exercises[i].a}</b>.</div>`;
+}
+renderExercises();
+
+window.addEventListener('resize',()=>{
+  if(inited3 && renderer3){
+    const c=document.getElementById('cv3d');
+    camera3.aspect=c.clientWidth/c.clientHeight; camera3.updateProjectionMatrix();
+    renderer3.setSize(c.clientWidth, c.clientHeight);
+  }
+});
+</script>
+</body>
+</html>
